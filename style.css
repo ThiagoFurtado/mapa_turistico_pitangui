@@ -1,0 +1,422 @@
+/* --- VARIÁVEIS DE COR E RESET GLOBAL --- */
+:root {
+    --primary-color: #1e90ff; /* Azul (dodgerblue) */
+    --light-blue: #e8f4ff;
+    --text-primary: #333;
+    --text-secondary: #777;
+    --background-color: #f8f9fa;
+    --border-color: #e9ecef;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    height: 100vh;
+    background-color: var(--background-color);
+    overflow: hidden;
+}
+
+/* --- BARRA LATERAL --- */
+#sidebar {
+    width: 380px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+}
+
+#sidebar header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1.5rem;
+    flex-shrink: 0;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-title i {
+    font-size: 2.5rem;
+    opacity: 0.9;
+}
+
+.header-title h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.header-title p {
+    font-size: 0.9rem;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+.sidebar-content {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.locations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+
+.locations-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#locations-count {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.search-container {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-container i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+#search-box {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 3rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#search-box:focus {
+    border-color: var(--primary-color);
+}
+
+#lista-locais {
+    list-style: none;
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 5px;
+}
+
+#lista-locais li {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+#lista-locais li .item-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    background-color: var(--light-blue);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#lista-locais li .item-info .item-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+#lista-locais li .item-info .item-address {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+#lista-locais li:hover {
+    background-color: var(--light-blue);
+}
+
+#lista-locais li.active {
+    background-color: var(--light-blue);
+}
+
+#lista-locais li.active .item-icon {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* --- MAPA --- */
+#map-container {
+    flex-grow: 1;
+    position: relative;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* --- ESTILO DOS PINOS (ÍCONES) --- */
+.custom-div-icon {}
+
+.custom-div-icon .pin-body {
+    position: relative;
+    background: #f8f8f8;
+    border: 4px solid #555;
+    border-radius: 12px;
+    box-shadow: 5px 5px 8px rgba(0,0,0,0.4);
+    padding: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+    transform-origin: center bottom;
+}
+
+.custom-div-icon .pin-body img {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    display: block;
+    object-fit: cover;
+}
+
+.custom-div-icon .pin-body::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-top: 15px solid #555;
+}
+
+.custom-div-icon.highlight .pin-body {
+    transform: scale(1.3);
+    z-index: 1000;
+}
+
+/* --- ESTILO DOS POPUPS --- */
+.leaflet-popup-content-wrapper {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.leaflet-popup-content {
+    margin: 15px !important;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: left;
+    width: 250px !important;
+    min-width: 250px !important;
+}
+
+.leaflet-popup-content h3 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    text-align: center;
+    white-space: normal;
+}
+
+.leaflet-popup-content .popup-foto {
+    width: 100%;
+    border-radius: 8px;
+    margin: 0 auto 15px auto;
+    display: block;
+    cursor: pointer;
+}
+
+.leaflet-popup-content p {
+    margin-top: 10px;
+    white-space: normal;
+}
+
+/* --- ESTILO DO TOOLTIP --- */
+.leaflet-tooltip {
+    background-color: rgba(0, 0, 0, 0.75) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 5px 10px !important;
+    font-family: 'Poppins', sans-serif !important;
+    font-size: 0.9rem !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+    white-space: nowrap !important;
+}
+
+.leaflet-tooltip-top::before {
+    border-top-color: rgba(0, 0, 0, 0.75) !important;
+}
+
+/* --- ESTILO DO MODAL DE IMAGEM (LIGHTBOX) --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 3000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.85);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90vh;
+    animation: zoomIn 0.3s ease-in-out;
+}
+
+@keyframes zoomIn {
+    from {transform: scale(0.8);}
+    to {transform: scale(1);}
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+    color: #bbb;
+    text-decoration: none;
+}
+
+/* --- ESTILO DO VISUALIZADOR 360 --- */
+.viewer-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    z-index: 4000;
+}
+
+#viewer-360 {
+    width: 100%;
+    height: 100%;
+}
+
+.viewer-close-button {
+    position: absolute;
+    top: 15px;
+    right: 35px;
+    z-index: 4001;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    text-shadow: 0 0 5px black;
+}
+
+/* --- ESTILO DO BOTÃO 360 (VERSÃO FINAL CORRIGIDA) --- */
+.popup-360-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: var(--primary-color);
+    color: white !important; /* Força a cor do texto */
+    text-align: center;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.popup-360-button i {
+    color: white !important; /* Força a cor do ícone */
+}
+
+.popup-360-button:hover {
+    background-color: #1c80e6;
+}
+
+/* --- RESPONSIVIDADE --- */
+#menu-toggle {
+    display: none;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 2001;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    color: #333;
+}
+
+@media (max-width: 850px) {
+    body {
+        position: relative;
+    }
+
+    #sidebar {
+        position: absolute;
+        height: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+        z-index: 2000;
+    }
+
+    #sidebar.open {
+        transform: translateX(0);
+    }
+
+    #menu-toggle {
+        display: block;
+    }
+}

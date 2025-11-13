@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Turístico de Pitangui</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome (para os ícones ) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+    <!-- Leaflet e MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+    <!-- BIBLIOTECA PHOTO SPHERE VIEWER (CSS ) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.css" />
+
+    <!-- Nosso CSS personalizado -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- A barra lateral é o primeiro elemento principal -->
+    <aside id="sidebar">
+        <header>
+            <div class="header-title">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <div>
+                    <h1>Pontos Turísticos de Pitangui</h1>
+                    <p>Explore as belezas da cidade</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="sidebar-content">
+            <div class="locations-header">
+                <h2>Locais</h2>
+                <span id="locations-count">0 pontos turísticos</span>
+            </div>
+
+            <div class="search-container">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="search-box" placeholder="Buscar local...">
+            </div>
+
+            <ul id="lista-locais">
+                <!-- A lista será preenchida dinamicamente -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- O contêiner do mapa fica ao lado -->
+    <main id="map-container">
+        <div id="map"></div>
+    </main>
+
+    <!-- BOTÃO DE MENU (POSIÇÃO CORRIGIDA ) -->
+    <button id="menu-toggle" aria-label="Abrir menu de locais">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- ESTRUTURA DO MODAL DE IMAGEM (LIGHTBOX) -->
+    <div id="image-modal" class="modal-overlay">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modal-image-content">
+    </div>
+
+    <!-- CONTÊINER PARA O VISUALIZADOR 360 -->
+    <div id="viewer-360-container" class="viewer-overlay">
+        <button id="viewer-360-close" class="viewer-close-button">&times;</button>
+        <div id="viewer-360"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+    <!-- BIBLIOTECAS PHOTO SPHERE VIEWER (VERSÃO CORRIGIDA E COMPLETA ) -->
+    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/uevent@2/browser.min.js"></script> <!-- Dependência que estava faltando -->
+    <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js"></script>
+
+    <!-- Nosso Script JS -->
+    <script src="script.js"></script>
+</body>
+</html>
