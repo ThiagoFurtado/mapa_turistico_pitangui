@@ -65,15 +65,10 @@ fetch('pontos_turisticos.geojson')
                 }
                 if (props.Historia) popupContent += `<div class="popup-descricao">${props.Historia}</div>`;
                 if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
-                
-                // --- CORREÇÃO APLICADA AQUI ---
-                // Verifica se a propriedade 'IMG360' (maiúsculas) existe
                 if (props.IMG360) {
-                    // Usa a propriedade 'IMG360' para obter a URL
                     let img360Url = props.IMG360.replace(/\\/g, '/').replace(/^\//, '');
                     popupContent += `<a href="#" class="popup-360-button" data-img360="${img360Url}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
                 }
-                
                 layer.bindPopup(popupContent);
                 layer.bindTooltip(props.Descricao, { direction: 'top' });
 
@@ -174,8 +169,21 @@ document.addEventListener('click', e => {
             viewerInstance = new PhotoSphereViewer.Viewer({
                 container: viewerDiv,
                 panorama: imageUrl,
-                navbar: ['zoom', 'move', 'fullscreen', 'caption'],
-                defaultZoomLvl: 0 // <-- ADICIONE ESTA LINHA
+                navbar: [
+                    'zoom',
+                    'move',
+                    'gyroscope', // Adiciona o botão do giroscópio
+                    'fullscreen',
+                    'caption'
+                ],
+                defaultZoomLvl: 0,
+                plugins: [
+                    // Ativa o plugin do giroscópio
+                    [PhotoSphereViewer.GyroscopePlugin, {
+                        touchmove: true,
+                        absolutePosition: false,
+                    }]
+                ]
             });
         }
     }
