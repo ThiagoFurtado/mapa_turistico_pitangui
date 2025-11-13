@@ -6,8 +6,6 @@ Este projeto foi feito para uma disciplina do Instituto Tecnológico de Agropecu
 
 ## Explore as belezas da Sétima Vila do Ouro de Minas Gerais
 
-![Demonstração do Mapa de Pitangui](https://i.imgur.com/link-para-sua-imagem.gif )
-> **Nota:** Para criar um GIF de demonstração como este, você pode usar ferramentas como ScreenToGIF (Windows) ou Kap (Mac). Depois, faça o upload do GIF para um site como o [Imgur](https://imgur.com/ ) e cole o link na linha acima.
 
 Este projeto é uma aplicação web interativa desenvolvida para exibir e explorar os pontos turísticos da cidade histórica de Pitangui, MG. A plataforma combina um mapa dinâmico com uma interface moderna e responsiva, permitindo aos usuários descobrir locais, visualizar fotos, obter informações e até mesmo fazer um tour virtual com imagens em 360°.
 
