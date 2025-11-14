@@ -121,7 +121,7 @@ fetch('pontos_turisticos.geojson')
             }
         });
 
-        // --- LÓGICA DA BARRA DE BUSCA (VERSÃO FINAL) ---
+        // --- LÓGICA DA BARRA DE BUSCA (VERSÃO FINAL CORRIGIDA) ---
         const searchBox = document.getElementById('search-box');
         const clearSearchBtn = document.getElementById('clear-search-btn');
 
