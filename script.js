@@ -121,13 +121,25 @@ fetch('pontos_turisticos.geojson')
             }
         });
 
+        // --- LÓGICA DA BARRA DE BUSCA (VERSÃO FINAL) ---
         const searchBox = document.getElementById('search-box');
-        searchBox.addEventListener('keyup', () => {
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+
+        function filterList() {
             const searchTerm = searchBox.value.toLowerCase();
+            clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
             allListItems.forEach(item => {
                 const itemText = item.textContent.toLowerCase();
                 item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
             });
+        }
+
+        searchBox.addEventListener('input', filterList);
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            filterList();
+            searchBox.focus();
         });
     })
     .catch(error => console.error('Erro ao processar o GeoJSON:', error));
@@ -172,13 +184,12 @@ document.addEventListener('click', e => {
                 navbar: [
                     'zoom',
                     'move',
-                    'gyroscope', // Adiciona o botão do giroscópio
+                    'gyroscope',
                     'fullscreen',
                     'caption'
                 ],
                 defaultZoomLvl: 0,
                 plugins: [
-                    // Ativa o plugin do giroscópio
                     [PhotoSphereViewer.GyroscopePlugin, {
                         touchmove: true,
                         absolutePosition: false,
