@@ -90,7 +90,7 @@ body {
 }
 
 .search-container {
-    position: relative;
+    position: relative; /* ESSENCIAL PARA POSICIONAR O BOTÃO DENTRO */
     margin-bottom: 1rem;
 }
 
@@ -104,7 +104,7 @@ body {
 
 #search-box {
     width: 100%;
-    padding: 0.8rem 1rem 0.8rem 3rem;
+    padding: 0.8rem 3rem; /* Aumenta o padding direito para dar espaço ao botão */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
@@ -381,7 +381,7 @@ body {
     background-color: #1c80e6;
 }
 
-/* --- ESTILOS PARA O BOTÃO DE LIMPAR BUSCA --- */
+/* --- ESTILOS PARA O BOTÃO DE LIMPAR BUSCA (VERSÃO FINAL) --- */
 .clear-button {
     position: absolute;
     right: 1rem;
@@ -389,10 +389,11 @@ body {
     transform: translateY(-50%);
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
+    line-height: 1;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 0;
+    padding: 5px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s ease;
