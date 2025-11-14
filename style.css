@@ -355,7 +355,7 @@ body {
     text-shadow: 0 0 5px black;
 }
 
-/* --- ESTILO DO BOTÃO 360 (VERSÃO FINAL CORRIGIDA) --- */
+/* --- ESTILO DO BOTÃO 360 --- */
 .popup-360-button {
     display: flex;
     justify-content: center;
@@ -365,7 +365,7 @@ body {
     padding: 10px;
     margin-top: 15px;
     background-color: var(--primary-color);
-    color: white !important; /* Força a cor do texto */
+    color: white !important;
     text-align: center;
     text-decoration: none;
     border-radius: 8px;
@@ -374,11 +374,33 @@ body {
 }
 
 .popup-360-button i {
-    color: white !important; /* Força a cor do ícone */
+    color: white !important;
 }
 
 .popup-360-button:hover {
     background-color: #1c80e6;
+}
+
+/* --- ESTILOS PARA O BOTÃO DE LIMPAR BUSCA --- */
+.clear-button {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.clear-button.visible {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 /* --- RESPONSIVIDADE --- */
