@@ -21,46 +21,75 @@ osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
 // --- LÓGICA PRINCIPAL ---
-
-// Inicializa o MarkerClusterGroup com a opção de SPIDERFY
 const markers = L.markerClusterGroup({
-    spiderfyOnMaxZoom: true,      // Ativa o "spiderfy" no nível máximo de zoom
-    showCoverageOnHover: false,   // Desativa a área de cobertura ao passar o mouse
-    zoomToBoundsOnClick: true,    // Comportamento padrão de clique no cluster
-    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 } // Estilo das "pernas da aranha"
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 }
 });
 
 const layerReferences = {};
 let allListItems = [];
 
+// Função para pré-carregar imagens e retornar suas dimensões
+async function preloadImageDimensions(features) {
+    const dimensions = {};
+    const promises = features.map(feature => {
+        const props = feature.properties;
+        if (!props.IMG) return Promise.resolve();
+
+        return new Promise(resolve => {
+            const img = new Image();
+            const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
+            img.src = fotoUrl;
+            img.onload = () => {
+                dimensions[props.id] = { width: img.width, height: img.height };
+                resolve();
+            };
+            img.onerror = () => {
+                // Se a imagem falhar, usamos dimensões padrão para não quebrar o layout
+                dimensions[props.id] = { width: 1, height: 1 };
+                resolve();
+            };
+        });
+    });
+    await Promise.all(promises);
+    return dimensions;
+}
+
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => { // Tornamos esta função async
         document.getElementById('locations-count').textContent = `${data.features.length} pontos turísticos`;
 
+        // 1. Pré-carrega as dimensões das imagens
+        const imageDimensions = await preloadImageDimensions(data.features);
+
+        // 2. Agora cria a camada GeoJSON com as dimensões já conhecidas
         const geoJsonLayer = L.geoJSON(data, {
             pointToLayer: (feature, latlng) => {
+                const props = feature.properties;
                 const marker = L.marker(latlng);
-                let fotoUrl = feature.properties.IMG;
-                if (fotoUrl) {
-                    fotoUrl = fotoUrl.replace(/\\/g, '/').replace(/^\//, '');
-                    const img = new Image();
-                    img.src = fotoUrl;
-                    img.onload = function () {
-                        const minSize = 70;
-                        const ratio = this.width / this.height;
-                        const imageWidth = ratio > 1 ? minSize * ratio : minSize;
-                        const imageHeight = ratio > 1 ? minSize : minSize / ratio;
-                        const iconWidth = imageWidth + 8;
-                        const iconHeight = imageHeight + 8;
-                        marker.setIcon(L.divIcon({
-                            className: 'custom-div-icon',
-                            html: `<div class="pin-body"><img src="${fotoUrl}" alt="${feature.properties.Descricao}"></div>`,
-                            iconSize: [iconWidth, iconHeight],
-                            iconAnchor: [iconWidth / 2, iconHeight + 15],
-                            popupAnchor: [0, -(iconHeight + 15)]
-                        }));
-                    };
+                
+                if (props.IMG && imageDimensions[props.id]) {
+                    const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
+                    const dims = imageDimensions[props.id];
+                    const ratio = dims.width / dims.height;
+                    
+                    const minSize = 70;
+                    const imageWidth = ratio > 1 ? minSize * ratio : minSize;
+                    const imageHeight = ratio > 1 ? minSize : minSize / ratio;
+                    const iconWidth = imageWidth + 8;
+                    const iconHeight = imageHeight + 8;
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="pin-body"><img src="${fotoUrl}" alt="${props.Descricao}"></div>`,
+                        iconSize: [iconWidth, iconHeight],
+                        iconAnchor: [iconWidth / 2, iconHeight + 15],
+                        popupAnchor: [0, -(iconHeight + 15)]
+                    });
+                    marker.setIcon(customIcon);
                 }
                 return marker;
             },
@@ -129,10 +158,8 @@ fetch('pontos_turisticos.geojson')
             }
         });
 
-        // --- LÓGICA DA BARRA DE BUSCA ---
         const searchBox = document.getElementById('search-box');
         const clearSearchBtn = document.getElementById('clear-search-btn');
-
         function filterList() {
             const searchTerm = searchBox.value.toLowerCase();
             clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
@@ -141,9 +168,7 @@ fetch('pontos_turisticos.geojson')
                 item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
             });
         }
-
         searchBox.addEventListener('input', filterList);
-
         clearSearchBtn.addEventListener('click', () => {
             searchBox.value = '';
             filterList();
@@ -189,20 +214,9 @@ document.addEventListener('click', e => {
             viewerInstance = new PhotoSphereViewer.Viewer({
                 container: viewerDiv,
                 panorama: imageUrl,
-                navbar: [
-                    'zoom',
-                    'move',
-                    'gyroscope',
-                    'fullscreen',
-                    'caption'
-                ],
+                navbar: ['zoom', 'move', 'gyroscope', 'fullscreen', 'caption'],
                 defaultZoomLvl: 0,
-                plugins: [
-                    [PhotoSphereViewer.GyroscopePlugin, {
-                        touchmove: true,
-                        absolutePosition: false,
-                    }]
-                ]
+                plugins: [[PhotoSphereViewer.GyroscopePlugin, { touchmove: true, absolutePosition: false }]]
             });
         }
     }
