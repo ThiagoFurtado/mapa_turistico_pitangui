@@ -21,7 +21,15 @@ osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
 // --- LÓGICA PRINCIPAL ---
-const markers = L.markerClusterGroup();
+
+// Inicializa o MarkerClusterGroup com a opção de SPIDERFY
+const markers = L.markerClusterGroup({
+    spiderfyOnMaxZoom: true,      // Ativa o "spiderfy" no nível máximo de zoom
+    showCoverageOnHover: false,   // Desativa a área de cobertura ao passar o mouse
+    zoomToBoundsOnClick: true,    // Comportamento padrão de clique no cluster
+    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 } // Estilo das "pernas da aranha"
+});
+
 const layerReferences = {};
 let allListItems = [];
 
@@ -121,7 +129,7 @@ fetch('pontos_turisticos.geojson')
             }
         });
 
-        // --- LÓGICA DA BARRA DE BUSCA (VERSÃO FINAL CORRIGIDA) ---
+        // --- LÓGICA DA BARRA DE BUSCA ---
         const searchBox = document.getElementById('search-box');
         const clearSearchBtn = document.getElementById('clear-search-btn');
 
