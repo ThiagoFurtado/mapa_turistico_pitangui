@@ -5,6 +5,14 @@ const map = L.map('map', {
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
+// ==================================================================
+// PASSO 1 DE DEPURAÇÃO: Rastrear o nível de zoom
+// ==================================================================
+map.on('zoomend', function() {
+    console.log('Nível de Zoom Atual:', map.getZoom());
+});
+
+
 // --- LÓGICA DO MENU HAMBÚRGUER ---
 const menuToggle = document.getElementById('menu-toggle');
 const sidebar = document.getElementById('sidebar');
@@ -22,18 +30,19 @@ L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position:
 
 // --- LÓGICA PRINCIPAL ---
 
-// Inicializa o MarkerClusterGroup com a opção de SPIDERFY e a correção final
 const markers = L.markerClusterGroup({
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
     spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 },
-
-    // A OPÇÃO FINAL E CRUCIAL:
-    // Força o plugin a parar de clusterizar no nível de zoom 18,
-    // ativando o "spiderfy" para marcadores sobrepostos.
     disableClusteringAtZoom: 18
 });
+
+// ==================================================================
+// PASSO 2 DE DEPURAÇÃO: Verificar as opções do cluster
+// ==================================================================
+console.log('Opções do MarkerClusterGroup:', markers.options);
+
 
 const layerReferences = {};
 let allListItems = [];
@@ -50,8 +59,6 @@ fetch('pontos_turisticos.geojson')
                 
                 if (props.IMG) {
                     const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
-                    
-                    // Tamanho fixo para todos os ícones para garantir compatibilidade
                     const iconWidth = 80;
                     const iconHeight = 90;
 
@@ -104,6 +111,22 @@ fetch('pontos_turisticos.geojson')
 
         markers.addLayer(geoJsonLayer);
         map.addLayer(markers);
+
+        // ==================================================================
+        // PASSO 3 DE DEPURAÇÃO: Forçar o spiderfy com um clique
+        // ==================================================================
+        markers.on('clusterclick', function (a) {
+            console.log('--- CLUSTER CLICADO ---');
+            console.log('Cluster:', a.layer);
+            console.log('Número de marcadores filhos:', a.layer.getChildCount());
+            
+            // Força o spiderfy para clusters pequenos para teste
+            if (a.layer.getChildCount() < 10) {
+                console.log('>>> Forçando spiderfy manualmente...');
+                a.layer.spiderfy();
+            }
+        });
+
 
         const listaLocais = document.getElementById('lista-locais');
         listaLocais.addEventListener('click', e => {
