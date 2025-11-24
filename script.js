@@ -21,20 +21,7 @@ osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
 // --- LÓGICA PRINCIPAL ---
-
-// Inicializa o MarkerClusterGroup com a opção de SPIDERFY e a correção final
-const markers = L.markerClusterGroup({
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false,
-    zoomToBoundsOnClick: true,
-    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 },
-
-    // A OPÇÃO FINAL E CRUCIAL:
-    // Força o plugin a parar de clusterizar no nível de zoom 18,
-    // ativando o "spiderfy" para marcadores sobrepostos.
-    disableClusteringAtZoom: 18
-});
-
+const markers = L.markerClusterGroup();
 const layerReferences = {};
 let allListItems = [];
 
@@ -45,24 +32,27 @@ fetch('pontos_turisticos.geojson')
 
         const geoJsonLayer = L.geoJSON(data, {
             pointToLayer: (feature, latlng) => {
-                const props = feature.properties;
                 const marker = L.marker(latlng);
-                
-                if (props.IMG) {
-                    const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
-                    
-                    // Tamanho fixo para todos os ícones para garantir compatibilidade
-                    const iconWidth = 80;
-                    const iconHeight = 90;
-
-                    const customIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div class="pin-body"><img src="${fotoUrl}" alt="${props.Descricao}"></div>`,
-                        iconSize: [iconWidth, iconHeight],
-                        iconAnchor: [iconWidth / 2, iconHeight + 15],
-                        popupAnchor: [0, -(iconHeight + 15)]
-                    });
-                    marker.setIcon(customIcon);
+                let fotoUrl = feature.properties.IMG;
+                if (fotoUrl) {
+                    fotoUrl = fotoUrl.replace(/\\/g, '/').replace(/^\//, '');
+                    const img = new Image();
+                    img.src = fotoUrl;
+                    img.onload = function () {
+                        const minSize = 70;
+                        const ratio = this.width / this.height;
+                        const imageWidth = ratio > 1 ? minSize * ratio : minSize;
+                        const imageHeight = ratio > 1 ? minSize : minSize / ratio;
+                        const iconWidth = imageWidth + 8;
+                        const iconHeight = imageHeight + 8;
+                        marker.setIcon(L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div class="pin-body"><img src="${fotoUrl}" alt="${feature.properties.Descricao}"></div>`,
+                            iconSize: [iconWidth, iconHeight],
+                            iconAnchor: [iconWidth / 2, iconHeight + 15],
+                            popupAnchor: [0, -(iconHeight + 15)]
+                        }));
+                    };
                 }
                 return marker;
             },
@@ -131,8 +121,10 @@ fetch('pontos_turisticos.geojson')
             }
         });
 
+        // --- LÓGICA DA BARRA DE BUSCA (VERSÃO FINAL CORRIGIDA) ---
         const searchBox = document.getElementById('search-box');
         const clearSearchBtn = document.getElementById('clear-search-btn');
+
         function filterList() {
             const searchTerm = searchBox.value.toLowerCase();
             clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
@@ -141,7 +133,9 @@ fetch('pontos_turisticos.geojson')
                 item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
             });
         }
+
         searchBox.addEventListener('input', filterList);
+
         clearSearchBtn.addEventListener('click', () => {
             searchBox.value = '';
             filterList();
@@ -187,9 +181,20 @@ document.addEventListener('click', e => {
             viewerInstance = new PhotoSphereViewer.Viewer({
                 container: viewerDiv,
                 panorama: imageUrl,
-                navbar: ['zoom', 'move', 'gyroscope', 'fullscreen', 'caption'],
+                navbar: [
+                    'zoom',
+                    'move',
+                    'gyroscope',
+                    'fullscreen',
+                    'caption'
+                ],
                 defaultZoomLvl: 0,
-                plugins: [[PhotoSphereViewer.GyroscopePlugin, { touchmove: true, absolutePosition: false }]]
+                plugins: [
+                    [PhotoSphereViewer.GyroscopePlugin, {
+                        touchmove: true,
+                        absolutePosition: false,
+                    }]
+                ]
             });
         }
     }
