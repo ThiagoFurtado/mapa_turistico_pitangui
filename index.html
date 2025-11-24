@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Todo o seu conteúdo HTML (app-container, sidebar, map, modals ) permanece aqui -->
     <div id="app-container">
         <button id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
         
@@ -53,7 +54,7 @@
         </main>
     </div>
 
-    <!-- Modal para Imagem Ampliada (Lightbox ) -->
+    <!-- Modal para Imagem Ampliada (Lightbox) -->
     <div id="image-modal" class="modal">
         <span class="modal-close">&times;</span>
         <img class="modal-content" id="modal-image-content">
@@ -65,19 +66,15 @@
         <div id="viewer-360"></div>
     </div>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SCRIPTS COM O ATRIBUTO 'defer' PARA GARANTIR A ORDEM DE EXECUÇÃO -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/overlapping-marker-spiderfier-leaflet/0.2.6/oms.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/uevent@2/browser.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/plugins/gyroscope.min.js" defer></script>
 
-    <!-- OverlappingMarkerSpiderfier (OMS ) JS - A LINHA QUE ESTAVA FALTANDO -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/overlapping-marker-spiderfier-leaflet/0.2.6/oms.min.js"></script>
-    
-    <!-- Photo Sphere Viewer JS e dependências -->
-    <script src="https://cdn.jsdelivr.net/npm/three/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/uevent@2/browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/plugins/gyroscope.min.js"></script>
-
-    <!-- Nosso Script JS -->
-    <script src="script.js"></script>
+    <!-- Nosso Script JS, também com 'defer' -->
+    <script src="script.js" defer></script>
 </body>
 </html>
