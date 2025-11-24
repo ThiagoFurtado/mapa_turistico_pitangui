@@ -20,15 +20,18 @@ const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z
 osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-// --- LÓGICA PRINCIPAL (VERSÃO REFATORADA) ---
+// --- LÓGICA PRINCIPAL (VERSÃO REFATORADA COM OMS) ---
 
 const layerReferences = {};
 let allListItems = [];
 let individualMarkersLayer = L.featureGroup(); // Camada para marcadores individuais
-let spiderfier = new L.OMS(map); // Inicializa o novo plugin Spiderfier
+let spiderfier = new L.OMS(map, { keepSpiderfied: true }); // Inicializa o novo plugin Spiderfier
 
-// Nível de zoom para trocar as camadas
-const SPIDERFY_ZOOM_LEVEL = 18;
+// Nível de zoom para mostrar os marcadores
+const SPIDERFY_ZOOM_LEVEL = 17;
+
+// O Spiderfier precisa saber quando um popup é aberto para não se fechar
+spiderfier.addListener('spiderfy', (markers) => map.closePopup());
 
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
@@ -65,7 +68,9 @@ fetch('pontos_turisticos.geojson')
                 let img360Url = props.IMG360.replace(/\\/g, '/').replace(/^\//, '');
                 popupContent += `<a href="#" class="popup-360-button" data-img360="${img360Url}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
             }
-            marker.bindPopup(popupContent);
+            // Importante: O OMS não funciona bem com bindPopup, então guardamos o conteúdo
+            marker.desc = popupContent; 
+            
             marker.bindTooltip(props.Descricao, { direction: 'top' });
 
             const localId = props.id;
@@ -82,7 +87,7 @@ fetch('pontos_turisticos.geojson')
             lista.appendChild(item);
             allListItems.push(item);
 
-            marker.on('click', () => {
+            marker.on('spiderfiedclick', () => { // Evento especial do OMS
                 allListItems.forEach(li => li.classList.remove('active'));
                 const activeListItem = document.querySelector(`#lista-locais li[data-id='${localId}']`);
                 if (activeListItem) {
@@ -92,17 +97,20 @@ fetch('pontos_turisticos.geojson')
             });
         });
 
+        // O OMS tem seu próprio evento de clique
+        spiderfier.addListener('click', (marker) => {
+            L.popup().setLatLng(marker.getLatLng()).setContent(marker.desc).openOn(map);
+        });
+
         // Lógica de troca de camadas baseada no zoom
         function updateLayers() {
             const currentZoom = map.getZoom();
             if (currentZoom >= SPIDERFY_ZOOM_LEVEL) {
                 if (!map.hasLayer(individualMarkersLayer)) {
-                    console.log("ZOOM >= 18: Mostrando marcadores individuais com Spiderfy.");
                     map.addLayer(individualMarkersLayer);
                 }
             } else {
                 if (map.hasLayer(individualMarkersLayer)) {
-                    console.log("ZOOM < 18: Escondendo marcadores individuais.");
                     map.removeLayer(individualMarkersLayer);
                 }
             }
@@ -111,7 +119,7 @@ fetch('pontos_turisticos.geojson')
         map.on('zoomend', updateLayers);
         updateLayers(); // Chama a função uma vez para definir o estado inicial
 
-        // --- Lógica de Eventos da Lista (simplificada) ---
+        // --- Lógica de Eventos da Lista ---
         const listaLocais = document.getElementById('lista-locais');
         listaLocais.addEventListener('click', e => {
             const listItem = e.target.closest('li');
@@ -121,13 +129,90 @@ fetch('pontos_turisticos.geojson')
                 const targetLayer = layerReferences[listItem.dataset.id];
                 if (targetLayer) {
                     map.setView(targetLayer.getLatLng(), SPIDERFY_ZOOM_LEVEL);
-                    targetLayer.openPopup();
+                    // Atraso para abrir o popup para garantir que o mapa esteja pronto
+                    setTimeout(() => {
+                        L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
+                    }, 100);
                 }
                 if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
             }
         });
-        // ... (eventos de mouseover e mouseout continuam iguais) ...
+        listaLocais.addEventListener('mouseover', e => {
+            const listItem = e.target.closest('li');
+            if (listItem) {
+                const targetLayer = layerReferences[listItem.dataset.id];
+                if (targetLayer?.getElement()) targetLayer.getElement().classList.add('highlight');
+            }
+        });
+        listaLocais.addEventListener('mouseout', e => {
+            const listItem = e.target.closest('li');
+            if (listItem) {
+                const targetLayer = layerReferences[listItem.dataset.id];
+                if (targetLayer?.getElement()) targetLayer.getElement().classList.remove('highlight');
+            }
+        });
+
+        // --- Lógica da Barra de Busca ---
+        const searchBox = document.getElementById('search-box');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+        function filterList() {
+            const searchTerm = searchBox.value.toLowerCase();
+            clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
+            allListItems.forEach(item => {
+                const itemText = item.textContent.toLowerCase();
+                item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+        searchBox.addEventListener('input', filterList);
+        clearSearchBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            filterList();
+            searchBox.focus();
+        });
     })
     .catch(error => console.error('Erro ao processar o GeoJSON:', error));
 
-// ... (todo o resto do código para modal e 360 continua igual) ...
+// --- LÓGICA DO MODAL DE IMAGEM (LIGHTBOX) ---
+const modal = document.getElementById("image-modal");
+const modalImg = document.getElementById("modal-image-content");
+const closeModalBtn = document.getElementsByClassName("modal-close")[0];
+const closeModal = () => modal.style.display = "none";
+closeModalBtn.onclick = closeModal;
+modal.onclick = e => { if (e.target === modal) closeModal(); };
+document.addEventListener('click', e => {
+    if (e.target?.classList.contains('popup-image-clickable')) {
+        modal.style.display = "flex";
+        modalImg.src = e.target.src;
+    }
+});
+
+// --- LÓGICA DO VISUALIZADOR 360 ---
+const viewerContainer = document.getElementById('viewer-360-container');
+const viewerDiv = document.getElementById('viewer-360');
+const close360Btn = document.getElementById('viewer-360-close');
+let viewerInstance = null;
+const close360Viewer = () => {
+    viewerContainer.style.display = 'none';
+    if (viewerInstance) {
+        viewerInstance.destroy();
+        viewerInstance = null;
+    }
+};
+close360Btn.onclick = close360Viewer;
+document.addEventListener('click', e => {
+    const button360 = e.target.closest('.popup-360-button');
+    if (button360) {
+        e.preventDefault();
+        const imageUrl = button360.dataset.img360;
+        if (imageUrl) {
+            viewerContainer.style.display = 'block';
+            viewerInstance = new PhotoSphereViewer.Viewer({
+                container: viewerDiv,
+                panorama: imageUrl,
+                navbar: ['zoom', 'move', 'gyroscope', 'fullscreen', 'caption'],
+                defaultZoomLvl: 0,
+                plugins: [[PhotoSphereViewer.GyroscopePlugin, { touchmove: true, absolutePosition: false }]]
+            });
+        }
+    }
+});
