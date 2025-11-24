@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     osmLayer.addTo(map);
     L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-    // --- LÓGICA PRINCIPAL COM A BIBLIOTECA CORRETA ---
+    // --- LÓGICA PRINCIPAL ---
     const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
 
     const layerReferences = {};
@@ -65,9 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 marker.bindPopup(popupContent);
                 marker.bindTooltip(props.Descricao, { direction: 'top' });
 
-                // ***** CORREÇÃO CRUCIAL *****
-                // A linha marker.addTo(map); foi REMOVIDA.
-                // Apenas adicionamos ao OMS, que gerencia a adição ao mapa.
+                // Deixamos o OMS gerenciar a adição do marcador ao mapa
                 oms.addMarker(marker);
 
                 const localId = props.id;
