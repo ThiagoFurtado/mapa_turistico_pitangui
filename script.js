@@ -21,11 +21,18 @@ osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
 // --- LÓGICA PRINCIPAL ---
+
+// Inicializa o MarkerClusterGroup com a opção de SPIDERFY e a correção final
 const markers = L.markerClusterGroup({
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
     zoomToBoundsOnClick: true,
-    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 }
+    spiderLegPolylineOptions: { weight: 1.5, color: '#222', opacity: 0.8 },
+
+    // A OPÇÃO FINAL E CRUCIAL:
+    // Força o plugin a parar de clusterizar no nível de zoom 18,
+    // ativando o "spiderfy" para marcadores sobrepostos.
+    disableClusteringAtZoom: 18
 });
 
 const layerReferences = {};
@@ -44,9 +51,9 @@ fetch('pontos_turisticos.geojson')
                 if (props.IMG) {
                     const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
                     
-                    // TAMANHO FIXO PARA TODOS OS ÍCONES
-                    const iconWidth = 80;  // Largura fixa da moldura
-                    const iconHeight = 90; // Altura fixa da moldura
+                    // Tamanho fixo para todos os ícones para garantir compatibilidade
+                    const iconWidth = 80;
+                    const iconHeight = 90;
 
                     const customIcon = L.divIcon({
                         className: 'custom-div-icon',
