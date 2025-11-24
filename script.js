@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         className: 'custom-div-icon',
                         html: `<div class="pin-body"><img src="${imagePath}" alt="${props.Descricao}"></div>`,
                         iconSize: [80, 90],
-                        iconAnchor: [40, 90], // Âncora na base do pino
+                        iconAnchor: [40, 90],
                     })
                 });
                 
@@ -64,6 +64,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 
                 marker.bindPopup(popupContent);
                 marker.bindTooltip(props.Descricao, { direction: 'top' });
+
+                // ***** CORREÇÃO CRUCIAL *****
+                // A linha marker.addTo(map); foi REMOVIDA.
+                // Apenas adicionamos ao OMS, que gerencia a adição ao mapa.
                 oms.addMarker(marker);
 
                 const localId = props.id;
