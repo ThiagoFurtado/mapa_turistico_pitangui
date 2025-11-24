@@ -16,10 +16,19 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    display: flex;
+    /* CORREÇÃO: Usamos o ID do container principal aqui */
+    /* display: flex; foi removido daqui */
     height: 100vh;
     background-color: var(--background-color);
     overflow: hidden;
+}
+
+/* --- ESTRUTURA PRINCIPAL DA APLICAÇÃO --- */
+/* NOVO: Este é o container que deve ser flex */
+#app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
 }
 
 /* --- BARRA LATERAL --- */
@@ -28,47 +37,46 @@ body {
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Impede que a sidebar encolha */
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
-#sidebar header {
+/* O header da sidebar está diferente no seu HTML, vamos ajustar */
+#sidebar .sidebar-header {
     background-color: var(--primary-color);
     color: white;
     padding: 1.5rem;
     flex-shrink: 0;
-}
-
-.header-title {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.header-title i {
+.sidebar-header .header-icon-container .header-icon {
     font-size: 2.5rem;
     opacity: 0.9;
 }
 
-.header-title h1 {
+.sidebar-header .header-text h2 {
     font-size: 1.5rem;
     font-weight: 600;
     line-height: 1.2;
 }
 
-.header-title p {
+.sidebar-header .header-text p {
     font-size: 0.9rem;
     font-weight: 400;
     opacity: 0.8;
 }
+
 
 .sidebar-content {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    overflow: hidden;
+    overflow: hidden; /* Permite que a lista interna tenha scroll */
 }
 
 .locations-header {
@@ -78,7 +86,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.locations-header h2 {
+.locations-header h3 { /* Era h2 no seu CSS antigo */
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -90,11 +98,11 @@ body {
 }
 
 .search-container {
-    position: relative; /* ESSENCIAL PARA POSICIONAR O BOTÃO DENTRO */
+    position: relative;
     margin-bottom: 1rem;
 }
 
-.search-container i {
+.search-container .search-icon { /* Classe específica para o ícone de busca */
     position: absolute;
     left: 1rem;
     top: 50%;
@@ -104,7 +112,7 @@ body {
 
 #search-box {
     width: 100%;
-    padding: 0.8rem 3rem; /* Aumenta o padding direito para dar espaço ao botão */
+    padding: 0.8rem 3rem 0.8rem 2.5rem; /* Espaço para os dois ícones */
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
@@ -117,9 +125,33 @@ body {
     border-color: var(--primary-color);
 }
 
+/* Botão de limpar busca */
+#clear-search-btn {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+#clear-search-btn.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
 #lista-locais {
     list-style: none;
-    overflow-y: auto;
+    overflow-y: auto; /* Scroll apenas na lista */
     flex-grow: 1;
     padding-right: 5px;
 }
@@ -174,18 +206,18 @@ body {
 
 /* --- MAPA --- */
 #map-container {
-    flex-grow: 1;
+    flex-grow: 1; /* Faz o mapa ocupar o resto do espaço */
+    height: 100%;
     position: relative;
 }
 
 #map {
     width: 100%;
     height: 100%;
+    background-color: #ddd; /* Cor de fundo para ver se o container aparece */
 }
 
 /* --- ESTILO DOS PINOS (ÍCONES) --- */
-.custom-div-icon {}
-
 .custom-div-icon .pin-body {
     position: relative;
     background: #f8f8f8;
@@ -200,16 +232,13 @@ body {
     transform-origin: center bottom;
 }
 
-
 .custom-div-icon .pin-body img {
     width: 100%;
     height: 100%;
     border-radius: 6px;
     display: block;
-    object-fit: cover; /* ESSA LINHA É CRUCIAL */
+    object-fit: cover;
 }
-
-
 
 .custom-div-icon .pin-body::after {
     content: '';
@@ -224,9 +253,9 @@ body {
     border-top: 15px solid #555;
 }
 
-.custom-div-icon.highlight .pin-body {
-    transform: scale(1.3);
-    z-index: 1000;
+.custom-div-icon.highlight .pin-body,
+.leaflet-marker-icon:hover .pin-body { /* Efeito de hover direto no marcador */
+    transform: scale(1.15);
 }
 
 /* --- ESTILO DOS POPUPS --- */
@@ -283,8 +312,8 @@ body {
 }
 
 /* --- ESTILO DO MODAL DE IMAGEM (LIGHTBOX) --- */
-.modal-overlay {
-    display: none;
+#image-modal { /* Era .modal-overlay */
+    display: none; /* Começa escondido */
     position: fixed;
     z-index: 3000;
     left: 0;
@@ -297,7 +326,11 @@ body {
     align-items: center;
 }
 
-.modal-content {
+#image-modal.modal {
+    display: flex; /* Para mostrar */
+}
+
+#modal-image-content { /* Era .modal-content */
     margin: auto;
     display: block;
     max-width: 90%;
@@ -328,7 +361,7 @@ body {
 }
 
 /* --- ESTILO DO VISUALIZADOR 360 --- */
-.viewer-overlay {
+#viewer-360-container { /* Era .viewer-overlay */
     display: none;
     position: fixed;
     top: 0;
@@ -344,7 +377,7 @@ body {
     height: 100%;
 }
 
-.viewer-close-button {
+#viewer-360-close { /* Era .viewer-close-button */
     position: absolute;
     top: 15px;
     right: 35px;
@@ -384,29 +417,6 @@ body {
     background-color: #1c80e6;
 }
 
-/* --- ESTILOS PARA O BOTÃO DE LIMPAR BUSCA (VERSÃO FINAL) --- */
-.clear-button {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    line-height: 1;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 5px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-.clear-button.visible {
-    opacity: 1;
-    pointer-events: auto;
-}
-
 /* --- RESPONSIVIDADE --- */
 #menu-toggle {
     display: none;
@@ -426,7 +436,9 @@ body {
 }
 
 @media (max-width: 850px) {
-    body {
+    /* Em telas pequenas, o #app-container não é mais flex */
+    #app-container {
+        display: block;
         position: relative;
     }
 
@@ -445,5 +457,9 @@ body {
     #menu-toggle {
         display: block;
     }
-}
 
+    #map-container {
+        width: 100%;
+        height: 100%;
+    }
+}
