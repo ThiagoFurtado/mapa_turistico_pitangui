@@ -31,56 +31,22 @@ const markers = L.markerClusterGroup({
 const layerReferences = {};
 let allListItems = [];
 
-// Função para pré-carregar imagens e retornar suas dimensões
-async function preloadImageDimensions(features) {
-    const dimensions = {};
-    const promises = features.map(feature => {
-        const props = feature.properties;
-        if (!props.IMG) return Promise.resolve();
-
-        return new Promise(resolve => {
-            const img = new Image();
-            const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
-            img.src = fotoUrl;
-            img.onload = () => {
-                dimensions[props.id] = { width: img.width, height: img.height };
-                resolve();
-            };
-            img.onerror = () => {
-                // Se a imagem falhar, usamos dimensões padrão para não quebrar o layout
-                dimensions[props.id] = { width: 1, height: 1 };
-                resolve();
-            };
-        });
-    });
-    await Promise.all(promises);
-    return dimensions;
-}
-
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
-    .then(async (data) => { // Tornamos esta função async
+    .then(data => {
         document.getElementById('locations-count').textContent = `${data.features.length} pontos turísticos`;
 
-        // 1. Pré-carrega as dimensões das imagens
-        const imageDimensions = await preloadImageDimensions(data.features);
-
-        // 2. Agora cria a camada GeoJSON com as dimensões já conhecidas
         const geoJsonLayer = L.geoJSON(data, {
             pointToLayer: (feature, latlng) => {
                 const props = feature.properties;
                 const marker = L.marker(latlng);
                 
-                if (props.IMG && imageDimensions[props.id]) {
+                if (props.IMG) {
                     const fotoUrl = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
-                    const dims = imageDimensions[props.id];
-                    const ratio = dims.width / dims.height;
                     
-                    const minSize = 70;
-                    const imageWidth = ratio > 1 ? minSize * ratio : minSize;
-                    const imageHeight = ratio > 1 ? minSize : minSize / ratio;
-                    const iconWidth = imageWidth + 8;
-                    const iconHeight = imageHeight + 8;
+                    // TAMANHO FIXO PARA TODOS OS ÍCONES
+                    const iconWidth = 80;  // Largura fixa da moldura
+                    const iconHeight = 90; // Altura fixa da moldura
 
                     const customIcon = L.divIcon({
                         className: 'custom-div-icon',
