@@ -20,57 +20,31 @@ const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z
 osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-// --- LÓGICA PRINCIPAL (VERSÃO FINAL COM CAMADA DUPLA) ---
+// --- LÓGICA PRINCIPAL (APENAS SPIDERFY, SEM CLUSTER) ---
 
-const markers = L.markerClusterGroup();
 const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
 
 const layerReferences = {};
 let allListItems = [];
-
-// Ícone invisível para os marcadores que o OMS vai rastrear
-const invisibleIcon = L.icon({
-    iconUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-    iconSize: [1, 1],
-    iconAnchor: [0, 0],
-});
 
 // Evento de clique do OMS para abrir os popups
 oms.addListener('click', (marker) => {
     L.popup().setLatLng(marker.getLatLng()).setContent(marker.desc).openOn(map);
 });
 
-// Sincroniza a posição dos marcadores visíveis com os invisíveis
-oms.addListener('spiderfy', (invisibleMarkers) => {
-    map.closePopup();
-    invisibleMarkers.forEach(marker => {
-        if (marker.visibleMarker) {
-            marker.visibleMarker.setLatLng(marker.getLatLng());
-        }
-    });
-});
-
-oms.addListener('unspiderfy', (invisibleMarkers) => {
-    invisibleMarkers.forEach(marker => {
-        if (marker.visibleMarker) {
-            marker.visibleMarker.setLatLng(marker.originalLatLng);
-        }
-    });
-});
+// Evento para fechar o popup quando o spiderfy acontece
+oms.addListener('spiderfy', () => map.closePopup());
 
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
     .then(data => {
         document.getElementById('locations-count').textContent = `${data.features.length} pontos turísticos`;
 
-        const visibleMarkersLayer = L.featureGroup(); // Camada para os marcadores visíveis
-
         data.features.forEach(feature => {
             const props = feature.properties;
             const latlng = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
             
-            // 1. Cria o marcador visível (nosso divIcon)
-            const visibleMarker = L.marker(latlng, {
+            const marker = L.marker(latlng, {
                 icon: L.divIcon({
                     className: 'custom-div-icon',
                     html: `<div class="pin-body"><img src="${props.IMG.replace(/\\/g, '/').replace(/^\//, '')}" alt="${props.Descricao}"></div>`,
@@ -78,41 +52,30 @@ fetch('pontos_turisticos.geojson')
                     iconAnchor: [40, 105],
                 })
             });
-            visibleMarker.addTo(visibleMarkersLayer); // Adiciona à camada visível
-
-            // 2. Cria o marcador invisível para o OMS
-            const invisibleMarker = L.marker(latlng, { icon: invisibleIcon });
             
-            // Guarda as referências cruzadas
-            invisibleMarker.visibleMarker = visibleMarker;
-            visibleMarker.invisibleMarker = invisibleMarker; // Referência no sentido inverso também
-            invisibleMarker.originalLatLng = latlng;
-
             let popupContent = `<h3>${props.Descricao}</h3>`;
             if (props.IMG) popupContent += `<img src="${props.IMG.replace(/\\/g, '/').replace(/^\//, '')}" alt="${props.Descricao}" class="popup-foto popup-image-clickable">`;
             if (props.Historia) popupContent += `<div class="popup-descricao">${props.Historia}</div>`;
             if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
             if (props.IMG360) popupContent += `<a href="#" class="popup-360-button" data-img360="${props.IMG360.replace(/\\/g, '/').replace(/^\//, '')}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
             
-            invisibleMarker.desc = popupContent;
-            visibleMarker.bindTooltip(props.Descricao, { direction: 'top' });
+            marker.desc = popupContent; // Guardamos o conteúdo para o OMS
+            
+            marker.bindTooltip(props.Descricao, { direction: 'top' });
+
+            // Adiciona o marcador ao mapa e ao OMS
+            marker.addTo(map);
+            oms.addMarker(marker);
 
             const localId = props.id;
-            layerReferences[localId] = visibleMarker; // A referência da lista aponta para o marcador visível
+            layerReferences[localId] = marker;
             const lista = document.getElementById('lista-locais');
             const item = document.createElement('li');
             item.setAttribute('data-id', localId);
             item.innerHTML = `<i class="fa-solid fa-location-dot item-icon"></i><div class="item-info"><div class="item-title">${props.Descricao}</div><div class="item-address">${props.Endereço || ''}</div></div>`;
             lista.appendChild(item);
             allListItems.push(item);
-
-            // Adiciona o marcador INVISÍVEL ao OMS e ao Cluster
-            oms.addMarker(invisibleMarker);
-            markers.addLayer(invisibleMarker);
         });
-
-        map.addLayer(markers);
-        map.addLayer(visibleMarkersLayer);
 
         // --- Lógica de Eventos da Lista ---
         const listaLocais = document.getElementById('lista-locais');
@@ -123,12 +86,10 @@ fetch('pontos_turisticos.geojson')
                 listItem.classList.add('active');
                 const targetLayer = layerReferences[listItem.dataset.id];
                 if (targetLayer) {
-                    // Damos zoom no cluster, que contém os marcadores invisíveis
-                    markers.zoomToShowLayer(targetLayer.invisibleMarker, () => {
-                        setTimeout(() => {
-                            L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.invisibleMarker.desc).openOn(map);
-                        }, 100);
-                    });
+                    map.setView(targetLayer.getLatLng(), 18); // Damos zoom e centralizamos
+                    setTimeout(() => {
+                        L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
+                    }, 300);
                 }
                 if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
             }
