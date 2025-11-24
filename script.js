@@ -1,5 +1,4 @@
 // Adiciona um "ouvinte" que espera o HTML da página estar completamente pronto.
-// TODO O NOSSO CÓDIGO VAI DENTRO DESTA FUNÇÃO.
 document.addEventListener('DOMContentLoaded', function () {
 
     // 1. Inicializar o mapa
@@ -24,9 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
     osmLayer.addTo(map);
     L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-    // --- LÓGICA PRINCIPAL (APENAS SPIDERFY, SEM CLUSTER) ---
-
-    // Usamos o nome completo, que é o padrão da biblioteca.
+    // --- LÓGICA PRINCIPAL COM A BIBLIOTECA CORRETA ---
     const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
 
     const layerReferences = {};
@@ -34,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Evento de clique do OMS para abrir os popups
     oms.addListener('click', (marker) => {
-        L.popup().setLatLng(marker.getLatLng()).setContent(marker.desc).openOn(map);
+        // Usamos o conteúdo do popup que já está no marcador
+        marker.openPopup();
     });
 
     // Evento para fechar o popup quando o spiderfy acontece
@@ -64,12 +62,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
                 if (props.IMG360) popupContent += `<a href="#" class="popup-360-button" data-img360="${props.IMG360.replace(/\\/g, '/').replace(/^\//, '')}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
                 
-                marker.desc = popupContent; // Guardamos o conteúdo para o OMS
+                // Associamos o popup diretamente ao marcador
+                marker.bindPopup(popupContent);
                 
                 marker.bindTooltip(props.Descricao, { direction: 'top' });
 
-                // Adiciona o marcador ao mapa e ao OMS
-                marker.addTo(map);
+                // Adiciona o marcador ao OMS (que por sua vez o adiciona ao mapa)
                 oms.addMarker(marker);
 
                 const localId = props.id;
@@ -91,10 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     listItem.classList.add('active');
                     const targetLayer = layerReferences[listItem.dataset.id];
                     if (targetLayer) {
-                        map.setView(targetLayer.getLatLng(), 18); // Damos zoom e centralizamos
-                        setTimeout(() => {
-                            L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
-                        }, 300);
+                        map.setView(targetLayer.getLatLng(), 18);
+                        targetLayer.openPopup();
                     }
                     if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
                 }
