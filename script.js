@@ -20,7 +20,7 @@ const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z
 osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-// --- LÓGICA PRINCIPAL (VERSÃO FINAL E CORRETA) ---
+// --- LÓGICA PRINCIPAL (VERSÃO FINALÍSSIMA) ---
 
 const markers = L.markerClusterGroup();
 const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
@@ -28,15 +28,13 @@ const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
 const layerReferences = {};
 let allListItems = [];
 
-// O OMS precisa saber quando um popup é aberto para não se fechar
+// O OMS precisa saber quando um popup é aberto
 oms.addListener('spiderfy', (markers) => map.closePopup());
 
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
     .then(data => {
         document.getElementById('locations-count').textContent = `${data.features.length} pontos turísticos`;
-
-        const markersList = []; // Array temporário para guardar os marcadores
 
         data.features.forEach(feature => {
             const props = feature.properties;
@@ -60,7 +58,7 @@ fetch('pontos_turisticos.geojson')
             if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
             if (props.IMG360) popupContent += `<a href="#" class="popup-360-button" data-img360="${props.IMG360.replace(/\\/g, '/').replace(/^\//, '')}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
             
-            marker.desc = popupContent; // Guardamos o conteúdo para o OMS usar
+            marker.desc = popupContent;
             marker.bindTooltip(props.Descricao, { direction: 'top' });
 
             const localId = props.id;
@@ -72,16 +70,11 @@ fetch('pontos_turisticos.geojson')
             lista.appendChild(item);
             allListItems.push(item);
 
-            markersList.push(marker); // Adiciona o marcador à lista temporária
+            // CORREÇÃO FINAL: Adiciona o marcador a ambas as bibliotecas, uma por uma.
+            oms.addMarker(marker);
+            markers.addLayer(marker);
         });
 
-        // Adiciona todos os marcadores ao OMS de uma vez
-        oms.addMarkers(markersList);
-        
-        // Adiciona o próprio OMS (que agora contém os marcadores) ao MarkerClusterGroup
-        markers.addLayer(oms);
-
-        // Adiciona o MarkerClusterGroup ao mapa
         map.addLayer(markers);
 
         // Evento de clique do OMS para abrir os popups
@@ -99,7 +92,6 @@ fetch('pontos_turisticos.geojson')
                 const targetLayer = layerReferences[listItem.dataset.id];
                 if (targetLayer) {
                     markers.zoomToShowLayer(targetLayer, () => {
-                        // Atraso para garantir que o popup abra após o zoom
                         setTimeout(() => {
                             L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
                         }, 100);
