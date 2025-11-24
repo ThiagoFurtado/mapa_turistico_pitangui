@@ -25,7 +25,7 @@ L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position:
 const layerReferences = {};
 let allListItems = [];
 let individualMarkersLayer = L.featureGroup(); // Camada para marcadores individuais
-let spiderfier = new L.OMS(map, { keepSpiderfied: true }); // Inicializa o novo plugin Spiderfier
+let spiderfier = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true }); 
 
 // Nível de zoom para mostrar os marcadores
 const SPIDERFY_ZOOM_LEVEL = 17;
@@ -216,3 +216,4 @@ document.addEventListener('click', e => {
         }
     }
 });
+
