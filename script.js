@@ -25,8 +25,9 @@ L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position:
 // ==================================================================
 // PASSO 1 DE DEPURAÇÃO: O OMS está sendo criado?
 // ==================================================================
+let oms; // Declaramos a variável aqui para ser acessível globalmente no script
 try {
-    const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
+    oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
     console.log('%c[DEBUG 1] SUCESSO: OverlappingMarkerSpiderfier (OMS) foi criado.', 'color: green; font-weight: bold;');
     
     oms.addListener('spiderfy', (markers) => {
@@ -75,7 +76,7 @@ fetch('pontos_turisticos.geojson')
                 // ==================================================================
                 // PASSO 2 DE DEPURAÇÃO: Os marcadores estão sendo registrados?
                 // ==================================================================
-                if (window.oms) {
+                if (oms) {
                     oms.addMarker(marker);
                 } else {
                     console.error('%c[DEBUG 2] FALHA: Tentativa de adicionar marcador, mas o OMS não existe.', 'color: red; font-weight: bold;');
@@ -120,14 +121,105 @@ fetch('pontos_turisticos.geojson')
         // ==================================================================
         // PASSO 2 DE DEPURAÇÃO (Continuação): Quantos marcadores foram registrados?
         // ==================================================================
-        if (window.oms) {
+        if (oms) {
             const trackedMarkers = oms.getMarkers();
             console.log(`%c[DEBUG 2] INFO: ${trackedMarkers.length} marcadores foram registrados no OMS.`, 'color: purple; font-weight: bold;');
         }
 
-        // --- Lógica de Eventos da Lista (continua igual) ---
-        // ...
+        // --- Lógica de Eventos da Lista ---
+        const listaLocais = document.getElementById('lista-locais');
+        listaLocais.addEventListener('click', e => {
+            const listItem = e.target.closest('li');
+            if (listItem) {
+                allListItems.forEach(li => li.classList.remove('active'));
+                listItem.classList.add('active');
+                const targetLayer = layerReferences[listItem.dataset.id];
+                if (targetLayer) {
+                    markers.zoomToShowLayer(targetLayer, () => {
+                        setTimeout(() => {
+                            L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
+                        }, 100);
+                    });
+                }
+                if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
+            }
+        });
+        listaLocais.addEventListener('mouseover', e => {
+            const listItem = e.target.closest('li');
+            if (listItem) {
+                const targetLayer = layerReferences[listItem.dataset.id];
+                if (targetLayer?.getElement()) targetLayer.getElement().classList.add('highlight');
+            }
+        });
+        listaLocais.addEventListener('mouseout', e => {
+            const listItem = e.target.closest('li');
+            if (listItem) {
+                const targetLayer = layerReferences[listItem.dataset.id];
+                if (targetLayer?.getElement()) targetLayer.getElement().classList.remove('highlight');
+            }
+        });
+
+        // --- Lógica da Barra de Busca ---
+        const searchBox = document.getElementById('search-box');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+        function filterList() {
+            const searchTerm = searchBox.value.toLowerCase();
+            clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
+            allListItems.forEach(item => {
+                const itemText = item.textContent.toLowerCase();
+                item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
+            });
+        }
+        searchBox.addEventListener('input', filterList);
+        clearSearchBtn.addEventListener('click', () => {
+            searchBox.value = '';
+            filterList();
+            searchBox.focus();
+        });
     })
     .catch(error => console.error('Erro ao processar o GeoJSON:', error));
 
-// ... (Todo o resto do código para busca, modal, 360, etc., continua igual)
+// --- LÓGICA DO MODAL DE IMAGEM (LIGHTBOX) ---
+const modal = document.getElementById("image-modal");
+const modalImg = document.getElementById("modal-image-content");
+const closeModalBtn = document.getElementsByClassName("modal-close")[0];
+const closeModal = () => modal.style.display = "none";
+closeModalBtn.onclick = closeModal;
+modal.onclick = e => { if (e.target === modal) closeModal(); };
+document.addEventListener('click', e => {
+    if (e.target?.classList.contains('popup-image-clickable')) {
+        modal.style.display = "flex";
+        modalImg.src = e.target.src;
+    }
+});
+
+// --- LÓGICA DO VISUALIZADOR 360 ---
+const viewerContainer = document.getElementById('viewer-360-container');
+const viewerDiv = document.getElementById('viewer-360');
+const close360Btn = document.getElementById('viewer-360-close');
+let viewerInstance = null;
+const close360Viewer = () => {
+    viewerContainer.style.display = 'none';
+    if (viewerInstance) {
+        viewerInstance.destroy();
+        viewerInstance = null;
+    }
+};
+close360Btn.onclick = close360Viewer;
+document.addEventListener('click', e => {
+    const button360 = e.target.closest('.popup-360-button');
+    if (button360) {
+        e.preventDefault();
+        const imageUrl = button360.dataset.img360;
+        if (imageUrl) {
+            viewerContainer.style.display = 'block';
+            viewerInstance = new PhotoSphereViewer.Viewer({
+                container: viewerDiv,
+                panorama: imageUrl,
+                navbar: ['zoom', 'move', 'gyroscope', 'fullscreen', 'caption'],
+                defaultZoomLvl: 0,
+                plugins: [[PhotoSphereViewer.GyroscopePlugin, { touchmove: true, absolutePosition: false }]]
+            });
+        }
+    }
+});
