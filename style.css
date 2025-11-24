@@ -16,15 +16,12 @@
 
 body {
     font-family: 'Poppins', sans-serif;
-    /* CORREÇÃO: Usamos o ID do container principal aqui */
-    /* display: flex; foi removido daqui */
     height: 100vh;
     background-color: var(--background-color);
     overflow: hidden;
 }
 
 /* --- ESTRUTURA PRINCIPAL DA APLICAÇÃO --- */
-/* NOVO: Este é o container que deve ser flex */
 #app-container {
     display: flex;
     width: 100%;
@@ -37,12 +34,11 @@ body {
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0; /* Impede que a sidebar encolha */
+    flex-shrink: 0;
     z-index: 1000;
     box-shadow: 2px 0 10px rgba(0,0,0,0.05);
 }
 
-/* O header da sidebar está diferente no seu HTML, vamos ajustar */
 #sidebar .sidebar-header {
     background-color: var(--primary-color);
     color: white;
@@ -70,13 +66,12 @@ body {
     opacity: 0.8;
 }
 
-
 .sidebar-content {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    overflow: hidden; /* Permite que a lista interna tenha scroll */
+    overflow: hidden;
 }
 
 .locations-header {
@@ -86,7 +81,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.locations-header h3 { /* Era h2 no seu CSS antigo */
+.locations-header h3 {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -102,7 +97,7 @@ body {
     margin-bottom: 1rem;
 }
 
-.search-container .search-icon { /* Classe específica para o ícone de busca */
+.search-container .search-icon {
     position: absolute;
     left: 1rem;
     top: 50%;
@@ -112,7 +107,7 @@ body {
 
 #search-box {
     width: 100%;
-    padding: 0.8rem 3rem 0.8rem 2.5rem; /* Espaço para os dois ícones */
+    padding: 0.8rem 3rem 0.8rem 2.5rem;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     font-size: 1rem;
@@ -125,7 +120,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Botão de limpar busca */
 #clear-search-btn {
     position: absolute;
     right: 1rem;
@@ -148,10 +142,9 @@ body {
     pointer-events: auto;
 }
 
-
 #lista-locais {
     list-style: none;
-    overflow-y: auto; /* Scroll apenas na lista */
+    overflow-y: auto;
     flex-grow: 1;
     padding-right: 5px;
 }
@@ -206,7 +199,7 @@ body {
 
 /* --- MAPA --- */
 #map-container {
-    flex-grow: 1; /* Faz o mapa ocupar o resto do espaço */
+    flex-grow: 1;
     height: 100%;
     position: relative;
 }
@@ -214,7 +207,7 @@ body {
 #map {
     width: 100%;
     height: 100%;
-    background-color: #ddd; /* Cor de fundo para ver se o container aparece */
+    background-color: #ddd;
 }
 
 /* --- ESTILO DOS PINOS (ÍCONES) --- */
@@ -254,7 +247,7 @@ body {
 }
 
 .custom-div-icon.highlight .pin-body,
-.leaflet-marker-icon:hover .pin-body { /* Efeito de hover direto no marcador */
+.leaflet-marker-icon:hover .pin-body {
     transform: scale(1.15);
 }
 
@@ -312,8 +305,8 @@ body {
 }
 
 /* --- ESTILO DO MODAL DE IMAGEM (LIGHTBOX) --- */
-#image-modal { /* Era .modal-overlay */
-    display: none; /* Começa escondido */
+#image-modal {
+    display: none;
     position: fixed;
     z-index: 3000;
     left: 0;
@@ -326,11 +319,7 @@ body {
     align-items: center;
 }
 
-#image-modal.modal {
-    display: flex; /* Para mostrar */
-}
-
-#modal-image-content { /* Era .modal-content */
+#modal-image-content {
     margin: auto;
     display: block;
     max-width: 90%;
@@ -361,7 +350,7 @@ body {
 }
 
 /* --- ESTILO DO VISUALIZADOR 360 --- */
-#viewer-360-container { /* Era .viewer-overlay */
+#viewer-360-container {
     display: none;
     position: fixed;
     top: 0;
@@ -377,7 +366,7 @@ body {
     height: 100%;
 }
 
-#viewer-360-close { /* Era .viewer-close-button */
+#viewer-360-close {
     position: absolute;
     top: 15px;
     right: 35px;
@@ -436,7 +425,6 @@ body {
 }
 
 @media (max-width: 850px) {
-    /* Em telas pequenas, o #app-container não é mais flex */
     #app-container {
         display: block;
         position: relative;
