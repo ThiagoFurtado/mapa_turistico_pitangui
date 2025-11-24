@@ -1,5 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
 
+    // ==================================================================
+    // ***** CORREÇÃO DE AMBIENTE PARA O LEAFLET *****
+    // Isto força o Leaflet a saber onde encontrar suas imagens padrão.
+    // Resolve problemas onde o navegador não consegue encontrar os ícones.
+    // ==================================================================
+    delete L.Icon.Default.prototype._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    } );
+    // ==================================================================
+
     // 1. Inicializar o mapa
     const map = L.map('map', {
         zoomControl: false
@@ -7,12 +20,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     L.control.zoom({ position: 'topright' }).addTo(map);
 
-    // --- CAMADAS DE MAPA BASE ---
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    } ).addTo(map);
+    // --- LÓGICA DO MENU HAMBÚRGUER ---
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
 
-    // --- LÓGICA PRINCIPAL SIMPLIFICADA ---
+    // --- CAMADAS DE MAPA BASE ---
+    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    } );
+    const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+        attribution: 'Dados de imagem &copy;2025 Google'
+    } );
+    osmLayer.addTo(map);
+    L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
+
+    // --- LÓGICA PRINCIPAL ---
     const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
 
     const layerReferences = {};
@@ -21,6 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
     oms.addListener('click', (marker) => {
         marker.openPopup();
     });
+    oms.addListener('spiderfy', () => map.closePopup());
 
     fetch('pontos_turisticos.geojson')
         .then(response => response.json())
@@ -31,24 +55,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 const props = feature.properties;
                 const latlng = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
                 
-                // ==================================================================
-                // ***** ETAPA 1: USAR UM MARCADOR PADRÃO DO LEAFLET *****
-                // Em vez do nosso ícone complexo, vamos usar o marcador azul padrão.
-                // Se este marcador aparecer, sabemos que o problema está 100% no
-                // código do `divIcon` ou no CSS associado a ele.
-                // ==================================================================
-                const marker = L.marker(latlng); // <-- A MUDANÇA CRUCIAL ESTÁ AQUI
+                const imagePath = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
 
+                // Restauramos nosso ícone personalizado
+                const marker = L.marker(latlng, {
+                    icon: L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="pin-body"><img src="${imagePath}" alt="${props.Descricao}"></div>`,
+                        iconSize: [80, 90],
+                        iconAnchor: [40, 90],
+                    })
+                });
+                
                 let popupContent = `<h3>${props.Descricao}</h3>`;
+                if (props.IMG) popupContent += `<img src="${imagePath}" alt="${props.Descricao}" class="popup-foto popup-image-clickable">`;
                 if (props.Historia) popupContent += `<div class="popup-descricao">${props.Historia}</div>`;
                 if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
+                if (props.IMG360) popupContent += `<a href="#" class="popup-360-button" data-img360="${props.IMG360.replace(/\\/g, '/').replace(/^\//, '')}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
                 
                 marker.bindPopup(popupContent);
                 marker.bindTooltip(props.Descricao, { direction: 'top' });
 
                 oms.addMarker(marker);
 
-                // O resto do código para a lista lateral permanece o mesmo
                 const localId = props.id;
                 layerReferences[localId] = marker;
                 const lista = document.getElementById('lista-locais');
@@ -59,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 allListItems.push(item);
             });
 
-            // Lógica da lista lateral
+            // --- Lógica de Eventos da Lista ---
             const listaLocais = document.getElementById('lista-locais');
             listaLocais.addEventListener('click', e => {
                 const listItem = e.target.closest('li');
@@ -71,8 +100,87 @@ document.addEventListener('DOMContentLoaded', function () {
                         map.setView(targetLayer.getLatLng(), 18);
                         targetLayer.openPopup();
                     }
+                    if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
                 }
+            });
+            listaLocais.addEventListener('mouseover', e => {
+                const listItem = e.target.closest('li');
+                if (listItem) {
+                    const targetLayer = layerReferences[listItem.dataset.id];
+                    if (targetLayer?.getElement()) targetLayer.getElement().classList.add('highlight');
+                }
+            });
+            listaLocais.addEventListener('mouseout', e => {
+                const listItem = e.target.closest('li');
+                if (listItem) {
+                    const targetLayer = layerReferences[listItem.dataset.id];
+                    if (targetLayer?.getElement()) targetLayer.getElement().classList.remove('highlight');
+                }
+            });
+
+            // --- Lógica da Barra de Busca ---
+            const searchBox = document.getElementById('search-box');
+            const clearSearchBtn = document.getElementById('clear-search-btn');
+            function filterList() {
+                const searchTerm = searchBox.value.toLowerCase();
+                clearSearchBtn.classList.toggle('visible', searchTerm.length > 0);
+                allListItems.forEach(item => {
+                    const itemText = item.textContent.toLowerCase();
+                    item.style.display = itemText.includes(searchTerm) ? 'flex' : 'none';
+                });
+            }
+            searchBox.addEventListener('input', filterList);
+            clearSearchBtn.addEventListener('click', () => {
+                searchBox.value = '';
+                filterList();
+                searchBox.focus();
             });
         })
         .catch(error => console.error('Erro ao processar o GeoJSON:', error));
+
+    // --- LÓGICA DOS MODAIS ---
+    // (O código dos modais permanece o mesmo)
+    const modal = document.getElementById("image-modal");
+    const modalImg = document.getElementById("modal-image-content");
+    const closeModalBtn = document.getElementsByClassName("modal-close")[0];
+    const closeModal = () => modal.style.display = "none";
+    closeModalBtn.onclick = closeModal;
+    modal.onclick = e => { if (e.target === modal) closeModal(); };
+    document.addEventListener('click', e => {
+        if (e.target?.classList.contains('popup-image-clickable')) {
+            modal.style.display = "flex";
+            modalImg.src = e.target.src;
+        }
+    });
+
+    const viewerContainer = document.getElementById('viewer-360-container');
+    const viewerDiv = document.getElementById('viewer-360');
+    const close360Btn = document.getElementById('viewer-360-close');
+    let viewerInstance = null;
+    const close360Viewer = () => {
+        viewerContainer.style.display = 'none';
+        if (viewerInstance) {
+            viewerInstance.destroy();
+            viewerInstance = null;
+        }
+    };
+    close360Btn.onclick = close360Viewer;
+    document.addEventListener('click', e => {
+        const button360 = e.target.closest('.popup-360-button');
+        if (button360) {
+            e.preventDefault();
+            const imageUrl = button360.dataset.img360;
+            if (imageUrl) {
+                viewerContainer.style.display = 'block';
+                viewerInstance = new PhotoSphereViewer.Viewer({
+                    container: viewerDiv,
+                    panorama: imageUrl,
+                    navbar: ['zoom', 'move', 'gyroscope', 'fullscreen', 'caption'],
+                    defaultZoomLvl: 0,
+                    plugins: [[PhotoSphereViewer.GyroscopePlugin, { touchmove: true, absolutePosition: false }]]
+                });
+            }
+        }
+    });
+
 });
