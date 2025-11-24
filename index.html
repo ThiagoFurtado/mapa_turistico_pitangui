@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa Turístico de Pitangui</title>
 
-    <!-- Google Fonts (Opcional, mas melhora a aparência) -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Font Awesome (para ícones ) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <!-- Photo Sphere Viewer CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.css" />
 
-    <!-- Nosso CSS personalizado -->
+    <!-- ***** CORREÇÃO CRUCIAL ***** -->
+    <!-- Nosso CSS personalizado vem ANTES do CSS do Leaflet -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Leaflet CSS (Carregado por último para ter prioridade ) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 </head>
 <body>
     
@@ -74,7 +76,7 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- OverlappingMarkerSpiderfier para LEAFLET (A VERSÃO CORRETA ) -->
+    <!-- OverlappingMarkerSpiderfier para LEAFLET -->
     <script src="https://cdn.jsdelivr.net/npm/overlapping-marker-spiderfier-leaflet@0.2.6/dist/oms.min.js"></script>
     
     <!-- Photo Sphere Viewer JS e dependências -->
