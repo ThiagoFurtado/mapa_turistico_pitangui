@@ -1,4 +1,3 @@
-// Adiciona um "ouvinte" que espera o HTML da página estar completamente pronto.
 document.addEventListener('DOMContentLoaded', function () {
 
     // 1. Inicializar o mapa
@@ -31,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Evento de clique do OMS para abrir os popups
     oms.addListener('click', (marker) => {
-        // Usamos o conteúdo do popup que já está no marcador
         marker.openPopup();
     });
 
@@ -47,27 +45,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 const props = feature.properties;
                 const latlng = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
                 
+                const imagePath = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
+
                 const marker = L.marker(latlng, {
                     icon: L.divIcon({
                         className: 'custom-div-icon',
-                        html: `<div class="pin-body"><img src="${props.IMG.replace(/\\/g, '/').replace(/^\//, '')}" alt="${props.Descricao}"></div>`,
+                        html: `<div class="pin-body"><img src="${imagePath}" alt="${props.Descricao}"></div>`,
                         iconSize: [80, 90],
-                        iconAnchor: [40, 105],
+                        iconAnchor: [40, 90], // Âncora na base do pino
                     })
                 });
                 
                 let popupContent = `<h3>${props.Descricao}</h3>`;
-                if (props.IMG) popupContent += `<img src="${props.IMG.replace(/\\/g, '/').replace(/^\//, '')}" alt="${props.Descricao}" class="popup-foto popup-image-clickable">`;
+                if (props.IMG) popupContent += `<img src="${imagePath}" alt="${props.Descricao}" class="popup-foto popup-image-clickable">`;
                 if (props.Historia) popupContent += `<div class="popup-descricao">${props.Historia}</div>`;
                 if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
                 if (props.IMG360) popupContent += `<a href="#" class="popup-360-button" data-img360="${props.IMG360.replace(/\\/g, '/').replace(/^\//, '')}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
                 
-                // Associamos o popup diretamente ao marcador
                 marker.bindPopup(popupContent);
-                
                 marker.bindTooltip(props.Descricao, { direction: 'top' });
-
-                // Adiciona o marcador ao OMS (que por sua vez o adiciona ao mapa)
                 oms.addMarker(marker);
 
                 const localId = props.id;
