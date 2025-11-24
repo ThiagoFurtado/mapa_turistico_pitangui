@@ -20,16 +20,19 @@ const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z
 osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
-// --- LÓGICA PRINCIPAL (VERSÃO FINALÍSSIMA) ---
+// --- LÓGICA PRINCIPAL (VERSÃO DE DEPURAÇÃO SEM CLUSTER) ---
 
-const markers = L.markerClusterGroup();
 const oms = new OverlappingMarkerSpiderfier(map, { keepSpiderfied: true });
+console.log('%c[DEBUG] OMS Criado.', 'color: green;');
 
 const layerReferences = {};
 let allListItems = [];
 
-// O OMS precisa saber quando um popup é aberto
-oms.addListener('spiderfy', (markers) => map.closePopup());
+oms.addListener('click', (marker) => {
+    console.log('%c[DEBUG] Evento de clique do OMS disparado!', 'color: blue;');
+    L.popup().setLatLng(marker.getLatLng()).setContent(marker.desc).openOn(map);
+});
+oms.addListener('spiderfy', () => console.log('%c[DEBUG] Evento SPIDERFY disparado!', 'color: blue;'));
 
 fetch('pontos_turisticos.geojson')
     .then(response => response.json())
@@ -70,19 +73,14 @@ fetch('pontos_turisticos.geojson')
             lista.appendChild(item);
             allListItems.push(item);
 
-            // CORREÇÃO FINAL: Adiciona o marcador a ambas as bibliotecas, uma por uma.
+            // Adiciona o marcador diretamente ao mapa e ao OMS
+            map.addLayer(marker);
             oms.addMarker(marker);
-            markers.addLayer(marker);
         });
 
-        map.addLayer(markers);
+        console.log(`%c[DEBUG] ${oms.getMarkers().length} marcadores adicionados ao OMS.`, 'color: purple;');
 
-        // Evento de clique do OMS para abrir os popups
-        oms.addListener('click', (marker) => {
-            L.popup().setLatLng(marker.getLatLng()).setContent(marker.desc).openOn(map);
-        });
-
-        // --- Lógica de Eventos da Lista ---
+        // --- Lógica de Eventos da Lista (simplificada para o teste) ---
         const listaLocais = document.getElementById('lista-locais');
         listaLocais.addEventListener('click', e => {
             const listItem = e.target.closest('li');
@@ -91,11 +89,8 @@ fetch('pontos_turisticos.geojson')
                 listItem.classList.add('active');
                 const targetLayer = layerReferences[listItem.dataset.id];
                 if (targetLayer) {
-                    markers.zoomToShowLayer(targetLayer, () => {
-                        setTimeout(() => {
-                            L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
-                        }, 100);
-                    });
+                    map.setView(targetLayer.getLatLng(), 18); // Zoom simples
+                    L.popup().setLatLng(targetLayer.getLatLng()).setContent(targetLayer.desc).openOn(map);
                 }
                 if (sidebar.classList.contains('open')) sidebar.classList.remove('open');
             }
