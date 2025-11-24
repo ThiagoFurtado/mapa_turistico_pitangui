@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa Turístico de Pitangui</title>
 
-    <!-- Font Awesome (para ícones) -->
+    <!-- Google Fonts (Opcional, mas melhora a aparência) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome (para ícones ) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 
     <!-- Leaflet CSS -->
@@ -18,7 +23,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Todo o seu conteúdo HTML (app-container, sidebar, map, modals ) permanece aqui -->
+    
     <div id="app-container">
         <button id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
         
@@ -54,7 +59,7 @@
         </main>
     </div>
 
-    <!-- Modal para Imagem Ampliada (Lightbox) -->
+    <!-- Modal para Imagem Ampliada (Lightbox ) -->
     <div id="image-modal" class="modal">
         <span class="modal-close">&times;</span>
         <img class="modal-content" id="modal-image-content">
@@ -78,7 +83,7 @@
     <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/photo-sphere-viewer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/photo-sphere-viewer@4/dist/plugins/gyroscope.min.js"></script>
 
-    <!-- Nosso Script JS (com o DOMContentLoaded para garantir ) -->
+    <!-- Nosso Script JS -->
     <script src="script.js"></script>
 </body>
 </html>
