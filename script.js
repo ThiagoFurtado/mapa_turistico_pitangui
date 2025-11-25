@@ -13,10 +13,10 @@ menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
 // --- CAMADAS DE MAPA BASE ---
 const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-} );
+}  );
 const googleSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
     attribution: 'Dados de imagem &copy;2025 Google'
-} );
+}  );
 osmLayer.addTo(map);
 L.control.layers({ "Ruas": osmLayer, "Satélite": googleSat }, null, { position: 'bottomright' }).addTo(map);
 
@@ -45,9 +45,13 @@ fetch('pontos_turisticos.geojson')
                         const imageHeight = ratio > 1 ? minSize : minSize / ratio;
                         const iconWidth = imageWidth + 8;
                         const iconHeight = imageHeight + 8;
+                        
+                        // <-- ALTERAÇÃO AQUI: Remove a barra da descrição para o 'alt' da imagem do ícone
+                        const cleanDescricao = feature.properties.Descricao.replace(/\//g, ' ');
+
                         marker.setIcon(L.divIcon({
                             className: 'custom-div-icon',
-                            html: `<div class="pin-body"><img src="${fotoUrl}" alt="${feature.properties.Descricao}"></div>`,
+                            html: `<div class="pin-body"><img src="${fotoUrl}" alt="${cleanDescricao}"></div>`, // <-- USA A DESCRIÇÃO LIMPA
                             iconSize: [iconWidth, iconHeight],
                             iconAnchor: [iconWidth / 2, iconHeight + 15],
                             popupAnchor: [0, -(iconHeight + 15)]
@@ -58,10 +62,15 @@ fetch('pontos_turisticos.geojson')
             },
             onEachFeature: (feature, layer) => {
                 const props = feature.properties;
-                let popupContent = `<h3>${props.Descricao}</h3>`;
+                
+                // <-- ALTERAÇÃO AQUI: Cria uma variável com a descrição limpa (sem a barra)
+                const cleanDescricao = props.Descricao.replace(/\//g, ' ');
+
+                // Usa a variável 'cleanDescricao' para todos os elementos visíveis
+                let popupContent = `<h3>${cleanDescricao}</h3>`; // <-- USA A DESCRIÇÃO LIMPA
                 if (props.IMG) {
                     let fotoUrlPopup = props.IMG.replace(/\\/g, '/').replace(/^\//, '');
-                    popupContent += `<img src="${fotoUrlPopup}" alt="${props.Descricao}" class="popup-foto popup-image-clickable">`;
+                    popupContent += `<img src="${fotoUrlPopup}" alt="${cleanDescricao}" class="popup-foto popup-image-clickable">`; // <-- USA A DESCRIÇÃO LIMPA
                 }
                 if (props.Historia) popupContent += `<div class="popup-descricao">${props.Historia}</div>`;
                 if (props.Endereço) popupContent += `<p><strong>Endereço:</strong> ${props.Endereço}</p>`;
@@ -70,14 +79,15 @@ fetch('pontos_turisticos.geojson')
                     popupContent += `<a href="#" class="popup-360-button" data-img360="${img360Url}"><i class="fa-solid fa-vr-cardboard"></i> Ver em 360°</a>`;
                 }
                 layer.bindPopup(popupContent);
-                layer.bindTooltip(props.Descricao, { direction: 'top' });
+                layer.bindTooltip(cleanDescricao, { direction: 'top' }); // <-- USA A DESCRIÇÃO LIMPA
 
                 const localId = props.id;
                 layerReferences[localId] = layer;
                 const lista = document.getElementById('lista-locais');
                 const item = document.createElement('li');
                 item.setAttribute('data-id', localId);
-                item.innerHTML = `<i class="fa-solid fa-location-dot item-icon"></i><div class="item-info"><div class="item-title">${props.Descricao}</div><div class="item-address">${props.Endereço || ''}</div></div>`;
+                // <-- USA A DESCRIÇÃO LIMPA para o título na lista lateral
+                item.innerHTML = `<i class="fa-solid fa-location-dot item-icon"></i><div class="item-info"><div class="item-title">${cleanDescricao}</div><div class="item-address">${props.Endereço || ''}</div></div>`;
                 lista.appendChild(item);
                 allListItems.push(item);
 
