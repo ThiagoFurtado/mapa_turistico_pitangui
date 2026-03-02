@@ -262,6 +262,40 @@ body {
     white-space: normal;
 }
 
+/* --- ESTILO DA SEÇÃO HISTÓRIA COM ROLAGEM E TEXTO JUSTIFICADO --- */
+.popup-descricao {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    margin: 10px 0;
+    background-color: #f9f9f9;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+    text-align: justify;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+/* Estilo da barra de rolagem (Webkit browsers - Chrome, Safari, Edge) */
+.popup-descricao::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup-descricao::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.popup-descricao::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+.popup-descricao::-webkit-scrollbar-thumb:hover {
+    background: #1c80e6;
+}
+
 /* --- ESTILO DO TOOLTIP --- */
 .leaflet-tooltip {
     background-color: rgba(0, 0, 0, 0.75) !important;
